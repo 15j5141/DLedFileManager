@@ -1,0 +1,7 @@
+#TempFile
+hsptmp
+obj
+
+#BinaryFile
+*.exe
+*.dll
