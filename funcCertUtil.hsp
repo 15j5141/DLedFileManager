@@ -1,0 +1,93 @@
+#include "hspinet.as"
+#module CertUtil
+#include "hspext.as"
+sdim buf, 1024
+
+#defcfunc CertMD5 str fileName
+	sdim ln, 1024
+	sdim buf, 1024
+
+	// ファイル確認
+	exist fileName
+	if(strsize==-1): return "Err:Not Found or A Folder."
+
+	// 実行
+	cmd="certutil -hashfile \""+ fileName+ "\" MD5"
+	pipeexec buf, cmd, 0+1
+	if stat : return "Err:Cannot Run CertUtil."
+	logmes "実行中...: ("+cmd+ ")"
+	// 終了を待つ(同期型)
+	repeat
+		pipeget ln
+		if stat==0: break
+		await 1
+	loop
+
+	// CertUtil結果からハッシュ値を抽出
+	split buf, "\n", bufArray
+	if length(bufArray)!=4: return "Err:CertUtil Error.(length(bufArray))"
+	strrep bufArray.1, " ", ""// win7で空白が入るのを除去
+	if strlen(bufArray.1)!=32: return "Err:Not MD5."
+
+	return bufArray.1
+#defcfunc GetVar_buf
+	return buf
+#defcfunc INetMD5_ str fileName
+	md5=""
+	blockSize=1024*1024
+
+	exist fileName
+	fileSize=strsize
+	if(fileSize==-1){ return "x" }
+
+	; ファイルサイズが大きい場合はCertUtilで処理
+	if(fileSize>blockSize*64){
+		logmes "CertUtilで処理中"
+		md5= CertMD5(fileName)
+		logmes "CertUtil完了"
+		return md5
+	}
+	; 小さければ速度を上げるためにdllで処理
+	sdim fileRaw, fileSize
+	cnt1= -1
+	; FileSizeが大きい時に固まらないように少しずつ開く
+	repeat fileSize/blockSize
+		cnt1= cnt
+		bload fileName, fileRaw, blockSize, cnt*blockSize
+		await 0
+	loop
+	bload fileName, fileRaw, fileSize\blockSize, (cnt1+1)*blockSize
+
+	; メモリ上に一度読み込んだデータをハッシュ計算
+	logmes "varmd5で処理中"
+	varmd5@ md5,fileRaw, fileSize
+	;filemd5@ md5,fileName
+	logmes "varmd5完了"
+
+	return md5
+
+#defcfunc INetMD5 str fileName
+	md5=""
+	exist fileName
+	fileSize=strsize
+	//if(fileSize==-1){ return "x" }
+
+	filemd5@ md5,fileName
+	return md5
+#global
+
+#if 0
+	sdim buf,1024
+	checkFileName= "C:\\Windows\\System32\\calc.exe"
+	mesbox buf,640,200,1:obj_edit=stat
+
+	mes "----- stdOut Start -----"
+	hash= CertMD5(checkFileName)
+	buf= GetVar_buf()
+	mes "----- stdOut End -----"
+
+	objprm obj_edit, buf
+	mes "ハッシュ値: "+hash
+	exist checkFileName
+	mes "size: "+ (strsize/1000000)+ "MB"
+#endif
