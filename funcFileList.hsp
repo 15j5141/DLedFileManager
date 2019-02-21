@@ -1,0 +1,31 @@
+﻿// ファイル一覧取得
+#module FileList
+#include "hspext.as"
+/// Get@FileList(...)として呼べる
+#defcfunc local Get str path, str mask, int flag
+	//chdir dirinfo(0x10000)
+	sdim filelist, 64
+	dim bufInt, 1
+	cur= dir_cur// 元のカレントパスをメモ
+	dirlist2h 1+4+8+16, ','// 取得する情報を設定
+	if(path!=""): chdir path// パス移動
+	dirlist2 bufInt, mask, flag, '\\'// 取得ファイルのマスク等設定
+	;mes bufInt// 取得変数サイズ
+	sdim filelist,bufInt
+	dirlist2r fileList// 一覧取得
+	;mes fileList
+	chdir cur
+	return fileList
+
+/// GetFileList パス, (*.mp4,*,など), (0=normal, 1=サブディレクトリ含む, 2=隠しファイル含む)
+#defcfunc GetFileList str path, str mask, int flag
+	return Get(path, mask, flag)
+
+#global
+#if 0
+	screen 0, 1000
+	mes "取得中"
+	path=""
+	a= Get@FileList(path, "*", 2)
+	mesbox a, ginfo_winx, ginfo_winy-20
+#endif
