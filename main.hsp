@@ -1,0 +1,139 @@
+;文字コード=sjis
+#include "funcCertUtil.hsp"
+#include "funcFileList.hsp"
+#include "abdata/all.hsp"
+#include "sqlele.hsp"
+#include "func_.hsp"
+
+; mesboxスクロール用
+#define EM_SCROLL 0x00B5
+#define SB_BOTTOM 7
+#define EM_SETSEL 0xb1
+#define EM_REPLACESEL 0xC2
+
+#define DB_NAME "test.db"	; DBファイル名
+#define DB_ONCE 1				; dbopenを一度のみやるか毎回やるか
+onexit *owari
+*start
+	gosub *init
+	screen 0, 1000
+	goto *main
+
+*init
+	sdim listRaw, 64
+	sdim bufMesbox_, 64
+	sdim bufMesbox, 1000000
+	New@Dic; 辞書変数を初期化
+	sdim fileInfos, 64
+	dim nNewFile
+	return
+
+*main
+
+	title "ファイル一覧取得中"
+	path=dir_desktop; ここに基準のフォルダを指定
+	listRaw= GetFileList(path, "*", 2); 3でサブフォルダも含む
+	if(listRaw==""){ goto *owari }
+
+	title "DB確認中"
+	//mesbox bufMesbox, ginfo_winx, ginfo_winy-20: objMesbox = stat
+	if(DB_ONCE==1): sql_open DB_NAME
+
+	gosub *dbCreate
+	gosub *dbList
+	;stop
+	cls
+
+	title "ファイル一覧取得中"
+	split listRaw, "\n", listArrays; 改行で配列化
+	foreach listArrays
+		title "新規ファイルチェック中...（"+cnt+"/"+ length(listArrays)+"）"
+		split listArrays.cnt, ",", fileInfos
+		pathFile= path+"\\"+ fileInfos.0
+		exist pathFile
+		if(strsize==-1): continue
+		hash= ""+ INetMD5_(pathFile)
+		append="Hash:"+ hash+ ", Path:"+ pathFile
+		bufMesbox+=append+"\n"
+
+		Set@Dic "inPath", pathFile
+		Set@Dic "inSize", fileInfos.1
+		Set@Dic "inMD5", hash
+		gosub *dbSearchMD5
+
+		if(Get@Dic("outPath")==""){
+			; DBに存在しなければ
+			Set@Dic "inPath", pathFile
+			Set@Dic "inSize", fileInfos.1
+			Set@Dic "inMD5", hash
+			gosub *dbInsert
+			Reload:mes append
+			nNewFile+=1
+		}else{
+			;Reload:mes ".",1
+		}
+		;objprm objMesbox, bufMesbox
+		;sendmsg objinfo(objMesbox, 2), EM_SCROLL, SB_BOTTOM, 0
+		;sendmsg objinfo(objMesbox, 2), EM_SETSEL, strlen(bufMesbox_),-1
+		;sendmsg objinfo(objMesbox, 2), EM_REPLACESEL, 0, bufMesbox
+		await 1
+	loop
+	//bsave dir_cur+"\\test.txt", listRaw ,strlen(listRaw)
+	//bsave dir_cur+"\\test1.txt", bufMesbox ,strlen(bufMesbox)
+	if(DB_ONCE==1): sql_close
+	title "全処理が終了しました。合計"+length(listArrays)+"件中新規は"+nNewFile+"件"
+	stop
+
+*owari
+	if(DB_ONCE==1): sql_close
+	end
+	end
+*dbCreate; 新規DB作成
+	; dbファイル開く
+	if(DB_ONCE==0): sql_open DB_NAME
+	; テーブル作成 (作成済みならスルーされる)
+	sql_q "CREATE TABLE IF NOT EXISTS FileListTable (ID INTEGER PRIMARY KEY, Path, Size, MD5, URL, Site, Note)"
+	if(DB_ONCE==0): sql_close
+	return
+*dbInsert; 新規登録(dbPath,dbSize,dbMD5を事前に入れといて)
+	; dbファイル開く
+	dbPath=Get@Dic("inPath")
+	dbSize=Get@Dic("inSize")
+	dbMD5=Get@Dic("inMD5")
+	if(DB_ONCE==0): sql_open DB_NAME
+	dbQuery = "INSERT INTO FileListTable (Path, Size, MD5) VALUES ("
+	dbQuery+= "'"+ sqesc(dbPath)+ "', "
+	dbQuery+= "'"+ sqesc(dbSize)+ "', "
+	dbQuery+= "'"+ sqesc(dbMD5)+ "')"
+	sql_q dbQuery
+	if(DB_ONCE==0): sql_close
+	return
+*dbList; 全リスト表示
+	if(DB_ONCE==0): sql_open DB_NAME
+	; 現在の MemoTable の内容を抽出 (ID 逆順)
+	sql_q "SELECT ID, Path, Size, MD5 FROM FileListTable ORDER BY ID DESC"
+	; MemoTable の内容を表示 (抽出されたレコード数はシステム変数 stat に格納されている)
+	repeat stat
+		mes "ID:" + sql_v("ID") + ", Path:" + sql_v("Path")+ ", Size:" + sql_v("Size")+ ", MD5:" + sql_v("MD5")
+		sql_next
+	loop
+	if(DB_ONCE==0): sql_close
+	return
+*dbSearchPath; MD5,ファイルサイズで検索
+*dbSearchMD5; MD5,ファイルサイズで検索Pathも
+// 高速モードとしてMD5確認しないでやる,サイズ、ファイル名
+	if(DB_ONCE==0): sql_open DB_NAME
+	dbQuery = "SELECT * FROM FileListTable WHERE "
+	dbQuery+= "Path='"+ Get@Dic("inPath")+ "' AND "
+	dbQuery+= "Size='"+ Get@Dic("inSize")+ "' AND "
+	dbQuery+= "MD5='"+ Get@Dic("inMD5")+ "';"
+	sql_q dbQuery
+	if(stat!=0){
+		Set@Dic "outPath", sql_v("Path")
+		Set@Dic "outSize", sql_v("Size")
+		Set@Dic "outMD5", sql_v("MD5")
+	}else{
+		Set@Dic "outPath", ""
+	}
+	if(DB_ONCE==0): sql_close
+	return
