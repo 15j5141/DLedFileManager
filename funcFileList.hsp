@@ -1,30 +1,31 @@
-ï»¿// ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§å–å¾—
+;•¶šƒR[ƒh=sjis
+// ƒtƒ@ƒCƒ‹ˆê——æ“¾
 #module FileList
 #include "hspext.as"
-/// Get@FileList(...)ã¨ã—ã¦å‘¼ã¹ã‚‹
+/// Get@FileList(...)‚Æ‚µ‚ÄŒÄ‚×‚é
 #defcfunc local Get str path, str mask, int flag
 	//chdir dirinfo(0x10000)
 	sdim filelist, 64
 	dim bufInt, 1
-	cur= dir_cur// å…ƒã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‘ã‚¹ã‚’ãƒ¡ãƒ¢
-	dirlist2h 1+4+8+16, ','// å–å¾—ã™ã‚‹æƒ…å ±ã‚’è¨­å®š
-	if(path!=""): chdir path// ãƒ‘ã‚¹ç§»å‹•
-	dirlist2 bufInt, mask, flag, '\\'// å–å¾—ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒã‚¹ã‚¯ç­‰è¨­å®š
-	;mes bufInt// å–å¾—å¤‰æ•°ã‚µã‚¤ã‚º
+	cur= dir_cur// Œ³‚ÌƒJƒŒƒ“ƒgƒpƒX‚ğƒƒ‚
+	dirlist2h 1+4+8+16, ','// æ“¾‚·‚éî•ñ‚ğİ’è
+	if(path!=""): chdir path// ƒpƒXˆÚ“®
+	dirlist2 bufInt, mask, flag, '\\'// æ“¾ƒtƒ@ƒCƒ‹‚Ìƒ}ƒXƒN“™İ’è
+	;mes bufInt// æ“¾•Ï”ƒTƒCƒY
 	sdim filelist,bufInt
-	dirlist2r fileList// ä¸€è¦§å–å¾—
+	dirlist2r fileList// ˆê——æ“¾
 	;mes fileList
 	chdir cur
 	return fileList
 
-/// GetFileList ãƒ‘ã‚¹, (*.mp4,*,ãªã©), (0=normal, 1=ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå«ã‚€, 2=éš ã—ãƒ•ã‚¡ã‚¤ãƒ«å«ã‚€)
+/// GetFileList ƒpƒX, (*.mp4,*,‚È‚Ç), (0=normal, 1=ƒTƒuƒfƒBƒŒƒNƒgƒŠŠÜ‚Ş, 2=‰B‚µƒtƒ@ƒCƒ‹ŠÜ‚Ş)
 #defcfunc GetFileList str path, str mask, int flag
 	return Get(path, mask, flag)
 
 #global
 #if 0
 	screen 0, 1000
-	mes "å–å¾—ä¸­"
+	mes "æ“¾’†"
 	path=""
 	a= Get@FileList(path, "*", 2)
 	mesbox a, ginfo_winx, ginfo_winy-20

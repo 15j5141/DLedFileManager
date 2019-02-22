@@ -1,3 +1,4 @@
+;•¶šƒR[ƒh=sjis
 #include "hspinet.as"
 #module CertUtil
 #include "hspext.as"
@@ -7,26 +8,26 @@ sdim buf, 1024
 	sdim ln, 1024
 	sdim buf, 1024
 
-	// ãƒ•ã‚¡ã‚¤ãƒ«ç¢ºèª
+	// ƒtƒ@ƒCƒ‹Šm”F
 	exist fileName
 	if(strsize==-1): return "Err:Not Found or A Folder."
 
-	// å®Ÿè¡Œ
+	// Às
 	cmd="certutil -hashfile \""+ fileName+ "\" MD5"
 	pipeexec buf, cmd, 0+1
 	if stat : return "Err:Cannot Run CertUtil."
-	logmes "å®Ÿè¡Œä¸­...: ("+cmd+ ")"
-	// çµ‚äº†ã‚’å¾…ã¤(åŒæœŸå‹)
+	logmes "Às’†...: ("+cmd+ ")"
+	// I—¹‚ğ‘Ò‚Â(“¯ŠúŒ^)
 	repeat
 		pipeget ln
 		if stat==0: break
 		await 1
 	loop
 
-	// CertUtilçµæœã‹ã‚‰ãƒãƒƒã‚·ãƒ¥å€¤ã‚’æŠ½å‡º
+	// CertUtilŒ‹‰Ê‚©‚çƒnƒbƒVƒ…’l‚ğ’Šo
 	split buf, "\n", bufArray
 	if length(bufArray)!=4: return "Err:CertUtil Error.(length(bufArray))"
-	strrep bufArray.1, " ", ""// win7ã§ç©ºç™½ãŒå…¥ã‚‹ã®ã‚’é™¤å»
+	strrep bufArray.1, " ", ""// win7‚Å‹ó”’‚ª“ü‚é‚Ì‚ğœ‹
 	if strlen(bufArray.1)!=32: return "Err:Not MD5."
 
 	return bufArray.1
@@ -40,17 +41,17 @@ sdim buf, 1024
 	fileSize=strsize
 	if(fileSize==-1){ return "x" }
 
-	; ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºãŒå¤§ãã„å ´åˆã¯CertUtilã§å‡¦ç†
+	; ƒtƒ@ƒCƒ‹ƒTƒCƒY‚ª‘å‚«‚¢ê‡‚ÍCertUtil‚Åˆ—
 	if(fileSize>blockSize*64){
-		logmes "CertUtilã§å‡¦ç†ä¸­"
+		logmes "CertUtil‚Åˆ—’†"
 		md5= CertMD5(fileName)
-		logmes "CertUtilå®Œäº†"
+		logmes "CertUtilŠ®—¹"
 		return md5
 	}
-	; å°ã•ã‘ã‚Œã°é€Ÿåº¦ã‚’ä¸Šã’ã‚‹ãŸã‚ã«dllã§å‡¦ç†
+	; ¬‚³‚¯‚ê‚Î‘¬“x‚ğã‚°‚é‚½‚ß‚Édll‚Åˆ—
 	sdim fileRaw, fileSize
 	cnt1= -1
-	; FileSizeãŒå¤§ãã„æ™‚ã«å›ºã¾ã‚‰ãªã„ã‚ˆã†ã«å°‘ã—ãšã¤é–‹ã
+	; FileSize‚ª‘å‚«‚¢‚ÉŒÅ‚Ü‚ç‚È‚¢‚æ‚¤‚É­‚µ‚¸‚ÂŠJ‚­
 	repeat fileSize/blockSize
 		cnt1= cnt
 		bload fileName, fileRaw, blockSize, cnt*blockSize
@@ -58,11 +59,11 @@ sdim buf, 1024
 	loop
 	bload fileName, fileRaw, fileSize\blockSize, (cnt1+1)*blockSize
 
-	; ãƒ¡ãƒ¢ãƒªä¸Šã«ä¸€åº¦èª­ã¿è¾¼ã‚“ã ãƒ‡ãƒ¼ã‚¿ã‚’ãƒãƒƒã‚·ãƒ¥è¨ˆç®—
-	logmes "varmd5ã§å‡¦ç†ä¸­"
+	; ƒƒ‚ƒŠã‚Éˆê“x“Ç‚İ‚ñ‚¾ƒf[ƒ^‚ğƒnƒbƒVƒ…ŒvZ
+	logmes "varmd5‚Åˆ—’†"
 	varmd5@ md5,fileRaw, fileSize
 	;filemd5@ md5,fileName
-	logmes "varmd5å®Œäº†"
+	logmes "varmd5Š®—¹"
 
 	return md5
 
@@ -87,7 +88,7 @@ sdim buf, 1024
 	mes "----- stdOut End -----"
 
 	objprm obj_edit, buf
-	mes "ãƒãƒƒã‚·ãƒ¥å€¤: "+hash
+	mes "ƒnƒbƒVƒ…’l: "+hash
 	exist checkFileName
 	mes "size: "+ (strsize/1000000)+ "MB"
 #endif
