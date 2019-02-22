@@ -1,0 +1,73 @@
+;文字コード=sjis
+#module func_ variable
+colorR=255
+colorG=255
+colorB=255
+/// mes命令で画面外下にはみ出した際が面バッファを無理やり押し上げる
+#deffunc Reload
+   cx= ginfo_cx
+   cy= ginfo_cy
+   cR=ginfo_r
+   cG=ginfo_g
+   cB=ginfo_b
+   if (ginfo_cy+ginfo_mesy>ginfo_winy){
+      pos 0, 0
+      gcopy ginfo_sel, 0, ginfo_mesy, ginfo_winx, ginfo_winy;-ginfo_mesy
+      color 255, 250, 255
+      boxf 0, cy-ginfo_mesy, ginfo_winx, ginfo_winy
+      color cR, cG, cB
+      pos cx, cy-ginfo_mesy
+   }
+return
+/// mesをラップしてる
+#deffunc mesR str s
+   Reload:mes s
+return
+#global
+
+#module Dic
+   sdim dicKey, 64, 128
+   sdim dictionary, 1024, 128
+#deffunc local New
+   sdim dicKey, 64, 128
+   sdim dictionary, 1024, 128
+return
+#defcfunc local Get str key
+   cnt1= -1
+   flag=0
+   foreach dicKey
+      cnt1= cnt
+      if(dicKey(cnt)==key): flag=1: break
+   loop
+   if(flag==0){
+      return "Err:Not_Found_Key."
+   }
+return dictionary(cnt1)
+#deffunc local Set str key, str value
+   if(key==""): return
+   cnt1= -1
+   flag=0
+   foreach dicKey
+      cnt1= cnt
+      if(dicKey(cnt)==key): flag=1: break; keyが存在すれば上書き
+      if(dicKey(cnt)==""): flag=1: break; 存在しないけど配列数内ならその番号に書き込む
+   loop
+   if( flag==0 ){
+      dicKey(cnt1+1)=key
+      dictionary(cnt1+1)=value
+   }else{
+      dicKey(cnt1)=key
+      dictionary(cnt1)=value
+   }
+return
+#global
+
+#if 1
+New@Dic
+repeat 128
+   Set@Dic "a"+rnd(12345), "x"
+loop
+Set@Dic "a", "s"
+mes Get@Dic("a")
+mes Get@Dic("a")
+#endif
