@@ -1,0 +1,2 @@
+# git config --local diff.sjis.textconv "iconv -f sjis"
+*.hsp diff=sjis
