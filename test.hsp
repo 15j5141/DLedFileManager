@@ -1,0 +1,8 @@
+;•¶šƒR[ƒh=sjis
+#include "funcCertUtil.hsp"
+
+name=""
+mes "start"
+;mes CertMD5(name)
+;mes INetMD5_(name)
+mes ("‚ ")
